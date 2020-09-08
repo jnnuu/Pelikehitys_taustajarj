@@ -43,17 +43,30 @@ namespace SessionTwo
             Console.WriteLine(FirstItemWithLinq(player) + "\n");
 
             // Part 5.
-            // ProcessEachItem(player, PrintItem);
+            // del == a method that will be passed as a parameter to another method.
+            Action<Item> del = PrintItem;
+            ProcessEachItem(player, del);
+
+            // Part 6.
+            del = (item) => Console.WriteLine("Item id: " + item.Id + " , Level: " + item.Level);
+            ProcessEachItemLambda(player, del);
         }
 
-        public void ProcessEachItem(Player player, Action<Item> process)
-        {
+        public static Action<Player, Action<Item>> ProcessEachItemLambda = (player, process) =>
+            {
+                foreach (var item in player.Items)
+                    process(item);
+            };
 
+        public static void ProcessEachItem(Player player, Action<Item> process)
+        {
+            foreach (var item in player.Items)
+                process(item);
         }
 
-        public void PrintItem(Item item)
+        public static void PrintItem(Item item)
         {
-
+            Console.WriteLine("Item id: " + item.Id + " , Level: " + item.Level);
         }
 
         // ....
