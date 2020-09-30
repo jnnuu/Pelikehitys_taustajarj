@@ -9,7 +9,6 @@ using Microsoft.Extensions.Logging;
 
 namespace Projekti
 {
-    // HEHEHE MOI TOMMI HEHE MOIKKA MOI 
     public class Program
     {
         public static void Main(string[] args)
