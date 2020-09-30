@@ -37,7 +37,6 @@ namespace Projekti.Controllers
             Player player = new Player();
             player.Id = Guid.NewGuid().ToString();
             player.name = newplayer.name;
-            Console.WriteLine(player.name + " new playerin nimi: " + newplayer.name);
             await _repository.CreateAPlayer(player, id);
 
             return player;
@@ -57,23 +56,25 @@ namespace Projekti.Controllers
         {
             return await _repository.AddScore(id, score, (Combination)combination);
 
-
-
         }
 
-
-
-
-        // Task<Game> StartNewGame(Game game);
-        // Task<Player> CreateAPlayer(Player player, Guid id_game);
-        // Task<Player> GetPlayer(Guid id);
-        // Task<Player> AddScore(Guid id, int score, Combination combination);
-
-        // Task<int> GetScore(Guid id);
-
-        // Task<Player> GetWinner(Guid id_game);
-
-
+        [HttpGet]
+        [Route("GetPlayer/{id}")]
+        public async Task<Player> GetPlayer(String id)
+        {
+            return await _repository.GetPlayer(id);
+        }
+        [HttpGet]
+        [Route("GetWinner/{id_game}")]
+        public async Task<Player> GetWinner(String id_game)
+        {
+            return await _repository.GetWinner(id_game);
+        }
+        [HttpGet]
+        public async Task<Game[]> GetGames()
+        {
+            return await _repository.GetGames();
+        }
 
     }
 }

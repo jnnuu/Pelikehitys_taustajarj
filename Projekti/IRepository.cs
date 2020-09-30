@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 
@@ -13,6 +14,9 @@ public interface IRepository
     Task<int> GetScore(String id);
 
     Task<Player> GetWinner(String id_game);
+    Task<Game[]> GetGames();
+
+    // Task<String> GetScoreboard(String id);
 
 
 }

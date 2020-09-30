@@ -23,11 +23,13 @@ public class MongoDbRepository : IRepository
 
     public async Task<Player> AddScore(String id, int score, Combination combination)
     {
-        Console.WriteLine("TÄNNE PÄÄSTIIN 111");
         var filter = Builders<Game>.Filter.Empty;
-        Console.WriteLine("TÄNNE PÄÄSTIIN 222");
         var lista = await _gamesCollection.Find(filter).ToListAsync();
-        Console.WriteLine("TÄNNE PÄÄSTIIN 333");
+
+        if ((int)combination == 6 || (int)combination == 7 || (int)combination == 17)
+        {
+            throw new Exception("wrong field");
+        }
 
         foreach (var game in lista)
         {
@@ -47,7 +49,6 @@ public class MongoDbRepository : IRepository
 
                         if ((int)combination < 6)
                         {
-                            Console.WriteLine("TESTII");
                             newPlayer.scoreboard.scores[(int)Combination.total_up] += score;
                             if (newPlayer.scoreboard.scores[(int)Combination.total_up] >= 63)
                             {
@@ -80,9 +81,21 @@ public class MongoDbRepository : IRepository
         return player;
     }
 
-    public Task<Player> GetPlayer(String id)
+    public async Task<Player> GetPlayer(String id)
     {
-        throw new NotImplementedException();
+        var filter = Builders<Game>.Filter.Empty;
+        List<Game> lista = await _gamesCollection.Find(filter).ToListAsync();
+        foreach (var game in lista)
+        {
+            foreach (var player in game._players)
+            {
+                if (player.Id == id)
+                {
+                    return player;
+                }
+            }
+        }
+        return null;
     }
 
     public async Task<int> GetScore(String id)
@@ -103,9 +116,37 @@ public class MongoDbRepository : IRepository
 
     }
 
-    public Task<Player> GetWinner(String id_game)
+    public async Task<Game[]> GetGames()
     {
-        throw new NotImplementedException();
+        var filter = Builders<Game>.Filter.Empty;
+        List<Game> lista = await _gamesCollection.Find(filter).ToListAsync();
+        return lista.ToArray();
+    }
+
+    public async Task<Player> GetWinner(String id_game)
+    {
+        var filter = Builders<Game>.Filter.Eq(g => g.Id, id_game);
+        Game foundGame = await _gamesCollection.Find(filter).FirstAsync();
+        Player winner = new Player();
+        winner.scoreboard.scores[(int)Combination.total] = 0;
+        foreach (var player in foundGame._players)
+        {
+            foreach (var score in player.scoreboard.scores)
+            {
+                if (score == -1)
+                {
+                    throw new Exception("Game not finished"); //tähän vois tehdä oman exceptionin
+                }
+            }
+            if (player.scoreboard.scores[(int)Combination.total] > winner.scoreboard.scores[(int)Combination.total])
+            {
+                winner = player;
+            }
+        }
+        foundGame._winner = winner.name;
+        await _gamesCollection.ReplaceOneAsync(filter, foundGame);
+        return winner;
+
     }
 
     public async Task<Game> StartNewGame(Game game)

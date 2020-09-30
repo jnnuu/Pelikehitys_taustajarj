@@ -1,6 +1,6 @@
 public class Scoreboard
 {
-    public int[] scores;
+    public int[] scores { get; set; }
 
     // public int ones { get; set; }
     // public int twos { get; set; }
