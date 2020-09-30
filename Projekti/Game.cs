@@ -1,16 +1,15 @@
 using System;
+using System.Collections.Generic;
 
 public class Game
 {
-    public Player[] _players;
-    public int _numberOfPlayers;
-    public Game(Player[] players, int numberOfPlayers)
+    public List<Player> _players { get; set; }
+    public int _numberOfPlayers { get; set; }
+    public String Id { get; set; }
+    public Game()
     {
-        _numberOfPlayers = numberOfPlayers;
-        _players = new Player[_numberOfPlayers];
-        _players = players;
+        _players = new List<Player>();
     }
 
-    public Guid id_game;
 
 }

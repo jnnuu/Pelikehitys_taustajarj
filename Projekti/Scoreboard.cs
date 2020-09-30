@@ -1,6 +1,24 @@
 public class Scoreboard
 {
-    int ones, twos, threes, fours, fives, sixes, total_up, bonus, one_pair, two_pairs, three_same, four_same, full_house, low_straight, high_straight, chance, yatzy, total;
+    int ones { get; set; }
+    int twos { get; set; }
+    int threes { get; set; }
+    int fours { get; set; }
+    int fives { get; set; }
+    int sixes { get; set; }
+    int total_up { get; set; }
+    int bonus { get; set; }
+    int one_pair { get; set; }
+    int two_pairs { get; set; }
+    int three_same { get; set; }
+    int four_same { get; set; }
+    int full_house { get; set; }
+    int low_straight { get; set; }
+    int high_straight { get; set; }
+    int chance { get; set; }
+    int yatzy { get; set; }
+    int total { get; set; }
+
     public Scoreboard()
     {
         ones = -1;

@@ -8,8 +8,14 @@ public enum Combination
 
 public interface IRepository
 {
+    Task<Game> StartNewGame(Game game);
+    Task<Player> CreateAPlayer(Player player, String id);
     Task<Player> GetPlayer(Guid id);
-    Task<Player> AddScoreToOnes(Guid id, int score, Combination combination);
+    Task<Player> AddScore(Guid id, int score, Combination combination);
+
+    Task<int> GetScore(Guid id);
+
+    Task<Player> GetWinner(Guid id_game);
 
 
 }

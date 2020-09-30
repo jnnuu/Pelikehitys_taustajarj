@@ -2,10 +2,14 @@ using System;
 
 public class Player
 {
-    public Scoreboard scoreboard;
-    public Guid id;
+    public Scoreboard scoreboard { get; set; }
+    public String Id { get; set; }
+    public String name { get; set; }
 
-    public string name;
+    public Player()
+    {
+        scoreboard = new Scoreboard();
+    }
 
 
 }
