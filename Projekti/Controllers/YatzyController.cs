@@ -57,6 +57,8 @@ namespace Projekti.Controllers
         {
             return await _repository.AddScore(id, score, (Combination)combination);
 
+
+
         }
 
 

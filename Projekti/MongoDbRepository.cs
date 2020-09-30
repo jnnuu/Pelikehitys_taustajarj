@@ -39,10 +39,31 @@ public class MongoDbRepository : IRepository
                     var filter2 = Builders<Game>.Filter.Eq(g => g.Id, game.Id);
                     newGame = await _gamesCollection.Find(filter2).FirstAsync();
                     Player newPlayer = game._players[i];
-                    newPlayer.scoreboard.scores[(int)combination] = score;
-                    newGame._players[i] = newPlayer;
-                    await _gamesCollection.ReplaceOneAsync(filter2, newGame);
-                    return newPlayer;
+
+                    if (newPlayer.scoreboard.scores[(int)combination] == -1)
+                    {
+                        newPlayer.scoreboard.scores[(int)combination] = score;
+                        newPlayer.scoreboard.scores[(int)Combination.total] += score;
+
+                        if ((int)combination < 6)
+                        {
+                            Console.WriteLine("TESTII");
+                            newPlayer.scoreboard.scores[(int)Combination.total_up] += score;
+                            if (newPlayer.scoreboard.scores[(int)Combination.total_up] >= 63)
+                            {
+                                newPlayer.scoreboard.scores[(int)Combination.bonus] = 50;
+                            }
+                        }
+
+                        newGame._players[i] = newPlayer;
+                        await _gamesCollection.ReplaceOneAsync(filter2, newGame);
+                        return newPlayer;
+                    }
+                    else
+                    {
+                        throw new Exception(); // tähän voisi vaihtaa oman exceptionin 
+                    }
+
                 }
             }
         }
