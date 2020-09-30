@@ -1,9 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using MongoDB.Bson;
 
 using MongoDB.Driver;
-
+public enum Combination
+{
+    ones, twos, threes, fours, fives, sixes, total_up, bonus, one_pair, two_pairs, three_same, four_same, full_house, low_straight, high_straight, chance, yatzy, total
+}
 public class MongoDbRepository : IRepository
 {
 
@@ -17,9 +21,32 @@ public class MongoDbRepository : IRepository
         _bsonDocumentCollection = database.GetCollection<BsonDocument>("games");
     }
 
-    public Task<Player> AddScore(Guid id, int score, Combination combination)
+    public async Task<Player> AddScore(String id, int score, Combination combination)
     {
-        throw new NotImplementedException();
+        Console.WriteLine("TÄNNE PÄÄSTIIN 111");
+        var filter = Builders<Game>.Filter.Empty;
+        Console.WriteLine("TÄNNE PÄÄSTIIN 222");
+        var lista = await _gamesCollection.Find(filter).ToListAsync();
+        Console.WriteLine("TÄNNE PÄÄSTIIN 333");
+
+        foreach (var game in lista)
+        {
+            for (int i = 0; i < game._players.Count; i++)      // (var player in game._players)
+            {
+                if (game._players[i].Id == id)
+                {
+                    Game newGame = new Game();
+                    var filter2 = Builders<Game>.Filter.Eq(g => g.Id, game.Id);
+                    newGame = await _gamesCollection.Find(filter2).FirstAsync();
+                    Player newPlayer = game._players[i];
+                    newPlayer.scoreboard.scores[(int)combination] = score;
+                    newGame._players[i] = newPlayer;
+                    await _gamesCollection.ReplaceOneAsync(filter2, newGame);
+                    return newPlayer;
+                }
+            }
+        }
+        return null;
     }
 
     public async Task<Player> CreateAPlayer(Player player, String id)
@@ -32,17 +59,30 @@ public class MongoDbRepository : IRepository
         return player;
     }
 
-    public Task<Player> GetPlayer(Guid id)
+    public Task<Player> GetPlayer(String id)
     {
         throw new NotImplementedException();
     }
 
-    public Task<int> GetScore(Guid id)
+    public async Task<int> GetScore(String id)
     {
-        throw new NotImplementedException();
+        var filter = Builders<Game>.Filter.Empty;
+        List<Game> lista = await _gamesCollection.Find(filter).ToListAsync();
+        foreach (var game in lista)
+        {
+            foreach (var player in game._players)
+            {
+                if (player.Id == id)
+                {
+                    return player.scoreboard.scores[17];
+                }
+            }
+        }
+        return -1; // tähän vielä exception myöhemmin mikä otetaan kiinni? 
+
     }
 
-    public Task<Player> GetWinner(Guid id_game)
+    public Task<Player> GetWinner(String id_game)
     {
         throw new NotImplementedException();
     }

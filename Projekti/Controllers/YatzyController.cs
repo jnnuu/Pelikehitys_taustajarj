@@ -43,6 +43,22 @@ namespace Projekti.Controllers
             return player;
         }
 
+        [HttpGet]
+        [Route("{id}")]
+
+        public async Task<int> GetScore(String id)
+        {
+            return await _repository.GetScore(id);
+        }
+
+        [HttpPost]
+        [Route("AddScore/{id}/{combination:int}/{score:int}")]
+        public async Task<Player> AddScore(String id, int score, int combination)
+        {
+            return await _repository.AddScore(id, score, (Combination)combination);
+
+        }
+
 
 
 
