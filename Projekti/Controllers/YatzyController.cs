@@ -75,6 +75,12 @@ namespace Projekti.Controllers
         {
             return await _repository.GetGames();
         }
+        [HttpGet]
+        [Route("Help")]
+        public async Task<String> Help()
+        {
+            return await _repository.Help();
+        }
 
     }
 }

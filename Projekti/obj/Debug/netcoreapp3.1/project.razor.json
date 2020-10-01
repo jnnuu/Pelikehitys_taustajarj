@@ -1,5 +1,5 @@
 {
-  "FilePath": "c:\\Users\\Jere\\source\\repos\\Pelikehitys_taustajarj\\Projekti\\Projekti.csproj",
+  "FilePath": "c:\\Users\\Jonni\\source\\repos\\Pelikehitys_taustajarj\\Projekti\\Projekti.csproj",
   "Configuration": {
     "ConfigurationName": "MVC-3.0",
     "LanguageVersion": "3.0",
@@ -14387,7 +14387,7 @@
         }
       }
     ],
-    "CSharpLanguageVersion": 800
+    "CSharpLanguageVersion": 900
   },
   "RootNamespace": "Projekti",
   "Documents": [],

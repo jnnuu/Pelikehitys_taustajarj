@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using MongoDB.Bson;
 
@@ -44,9 +45,7 @@ public class MongoDbRepository : IRepository
 
                     if (newPlayer.scoreboard.scores[(int)combination] == -1)
                     {
-                        newPlayer.scoreboard.scores[(int)combination] = score;
-                        newPlayer.scoreboard.scores[(int)Combination.total] += score;
-
+                        SanityCheck((int)combination, score); // heittää exceptionin jos ei mene läpi, muuten ei toimenpiteitä.
                         if ((int)combination < 6)
                         {
                             newPlayer.scoreboard.scores[(int)Combination.total_up] += score;
@@ -55,6 +54,9 @@ public class MongoDbRepository : IRepository
                                 newPlayer.scoreboard.scores[(int)Combination.bonus] = 50;
                             }
                         }
+
+                        newPlayer.scoreboard.scores[(int)combination] = score;
+                        newPlayer.scoreboard.scores[(int)Combination.total] += score;
 
                         newGame._players[i] = newPlayer;
                         await _gamesCollection.ReplaceOneAsync(filter2, newGame);
@@ -70,6 +72,7 @@ public class MongoDbRepository : IRepository
         }
         return null;
     }
+
 
     public async Task<Player> CreateAPlayer(Player player, String id)
     {
@@ -154,4 +157,81 @@ public class MongoDbRepository : IRepository
         await _gamesCollection.InsertOneAsync(game);
         return game;
     }
+
+    public async Task<String> Help()
+    {
+        string returnString = await File.ReadAllTextAsync("indeksilista.txt");
+        return returnString;
+    }
+    private void SanityCheck(int combination, int score)
+    {
+        if (combination < 6) //yläkerta = samojen silmälukujen summa
+        {
+            if (score % (combination + 1) != 0)
+            {
+                throw new Exception("wrong value"); // tähän vois tehdä oman exceptionin
+            }
+        }
+        if (combination == 8) // pari = mahd scoret 2 4 6 8 10 12
+        {
+            if (score % 2 != 0 || score > 12)
+            {
+                throw new Exception("wrong value");
+            }
+        }
+        if (combination == 9) // 2*pari = mahd scoret 10 12 14 16 18 20 22
+        {
+            if (score % 2 != 0 || score > 22)
+            {
+                throw new Exception("wrong value");
+            }
+        }
+        if (combination == 10) // kolmiluku = mahd pisteet 3 6 9 12 15 18
+        {
+            if (score % 3 != 0 || score > 18)
+            {
+                throw new Exception("wrong value");
+            }
+        }
+        if (combination == 11) // neliluku = mahd pisteet 4 8 12 16 20 24  
+        {
+            if (score % 4 != 0 || score > 24)
+            {
+                throw new Exception("wrong value");
+            }
+        }
+        if (combination == 12) // täyskäsi 
+        {
+            // TODO: keksi ja toteuta täyskäden toteuttava sääntö
+        }
+        if (combination == 13) // pieni suora on aina 15 pistettä
+        {
+            if (score != 15)
+            {
+                throw new Exception("worng value");
+            }
+        }
+        if (combination == 14) // iso suora on aina 20 pistettä
+        {
+            if (score != 20)
+            {
+                throw new Exception("worng value");
+            }
+        }
+        if (combination == 15) // sattuma, viidellä nopalla mahdollisimman suuri tulos, min 5 max 30
+        {
+            if (score < 5 || score > 30)
+            {
+                throw new Exception("wrong value");
+            }
+        }
+        if (combination == 16) // yatzy, aina 50 pistettä
+        {
+            if (score != 50)
+            {
+                throw new Exception("wrong value");
+            }
+        }
+    }
+
 }
