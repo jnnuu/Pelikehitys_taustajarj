@@ -81,6 +81,11 @@ namespace Projekti.Controllers
         {
             return await _repository.Help();
         }
-
+        [HttpGet]
+        [Route("GetScoreboard/{id}")]
+        public async Task<String> GetScoreboard(String id)
+        {
+            return await _repository.GetScoreboard(id);
+        }
     }
 }

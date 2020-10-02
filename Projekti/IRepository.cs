@@ -16,7 +16,7 @@ public interface IRepository
     Task<Player> GetWinner(String id_game);
     Task<Game[]> GetGames();
     Task<String> Help();
-    // Task<String> GetScoreboard(String id);
+    Task<String> GetScoreboard(String id);
 
 
 }

@@ -233,5 +233,32 @@ public class MongoDbRepository : IRepository
             }
         }
     }
-
+    public async Task<String> GetScoreboard(String id)
+    {
+        var player = GetPlayer(id).Result;
+        String header = $"Scoreboard for {player.name}";
+        String scoreboard = $@"
+        ONES:       |{player.scoreboard.scores[0]}|
+        TWOS:       |{player.scoreboard.scores[1]}|
+        THREES:     |{player.scoreboard.scores[2]}|
+        FOURS:      |{player.scoreboard.scores[3]}|
+        FIVES:      |{player.scoreboard.scores[4]}|
+        SIXES:      |{player.scoreboard.scores[5]}|
+        ------------
+        total:      |{player.scoreboard.scores[6]}|
+        bonus:      |{player.scoreboard.scores[7]}|
+        ------------
+        PAIR:       |{player.scoreboard.scores[8]}|
+        2 PAIRS:    |{player.scoreboard.scores[9]}|
+        3OfKind:    |{player.scoreboard.scores[10]}|
+        4OfKind:    |{player.scoreboard.scores[11]}|
+        Sm.straight:|{player.scoreboard.scores[13]}|
+        Lg.straight:|{player.scoreboard.scores[14]}|
+        FullHouse:  |{player.scoreboard.scores[12]}|
+        Chance:     |{player.scoreboard.scores[15]}|
+        Yatzy:      |{player.scoreboard.scores[16]}|
+        ------------
+        total:      |{player.scoreboard.scores[17]}|";
+        return String.Join("\n", header, scoreboard);
+    }
 }

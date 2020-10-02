@@ -1,10 +1,11 @@
 Usage: 
-View all games                  = GET  /yatzy/
-Creating a game                 = POST /yatzy/StartNewGame/<amount of players:int>
-Adding players                  = POST /yatzy/CreateAPlayer/<Game id:guid> //FromBody {"name":"Your Name"}
-Adding score                    = POST /yatzy/AddScore/<player id:guid>/<field id:int>/<score:int>
-Get player                      = GET  /yatzy/GetPlayer/<player id:guid>
-Get winner of a finished game   = POST /yatzy/GetWinner/<game id:guid> 
+View all games                  = GET   /yatzy/
+Creating a game                 = POST  /yatzy/StartNewGame/<amount of players:int>
+Adding players                  = POST  /yatzy/CreateAPlayer/<Game id:guid> //FromBody {"name":"Your Name"}
+Adding score                    = POST  /yatzy/AddScore/<player id:guid>/<field id:int>/<score:int>
+Get player                      = GET   /yatzy/GetPlayer/<player id:guid>
+Get player scoreboard           = GET   /yatzy/GetScoreBoard/<player id:guid>
+Get winner of a finished game   = POST  /yatzy/GetWinner/<game id:guid> 
 
 title       Field id
 ____________________
