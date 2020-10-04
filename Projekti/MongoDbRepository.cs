@@ -367,7 +367,6 @@ public class MongoDbRepository : IRepository
         for (int i = 0; i < 18; i++)
         {
             await DeleteScore(id, (Combination)i);
-            System.Console.WriteLine("test");
         }
 
         return player;
