@@ -27,6 +27,7 @@ public class MongoDbRepository : IRepository
         var filter = Builders<Game>.Filter.Empty;
         var lista = await _gamesCollection.Find(filter).ToListAsync();
 
+
         if ((int)combination == 6 || (int)combination == 7 || (int)combination == 17)
         {
             throw new Exception("wrong field");
@@ -73,7 +74,36 @@ public class MongoDbRepository : IRepository
         return null;
     }
 
-
+    public async Task<Player> DeleteScore(String id, Combination combination)
+    {
+        var filter = Builders<Game>.Filter.Empty;
+        var lista = await _gamesCollection.Find(filter).ToListAsync();
+        foreach (var game in lista)
+        {
+            for (int i = 0; i < game._players.Count; i++)
+            {
+                if (game._players[i].Id == id)
+                {
+                    Game newGame = new Game();
+                    var filter2 = Builders<Game>.Filter.Eq(g => g.Id, game.Id);
+                    newGame = await _gamesCollection.Find(filter2).FirstAsync();
+                    Player newPlayer = game._players[i];
+                    if ((int)combination == 6 || (int)combination == 17)
+                    {
+                        newPlayer.scoreboard.scores[(int)combination] = 0;
+                    }
+                    else
+                    {
+                        newPlayer.scoreboard.scores[(int)combination] = -1;
+                    }
+                    newGame._players[i] = newPlayer;
+                    await _gamesCollection.ReplaceOneAsync(filter2, newGame);
+                    return newPlayer;
+                }
+            }
+        }
+        return null;
+    }
     public async Task<Player> CreateAPlayer(Player player, String id)
     {
         var filter = Builders<Game>.Filter.Eq(g => g.Id, id);
@@ -179,7 +209,7 @@ public class MongoDbRepository : IRepository
                 throw new Exception("wrong value");
             }
         }
-        if (combination == 9) // 2*pari = mahd scoret 10 12 14 16 18 20 22
+        if (combination == 9) // 2*pari = mahd scoret 6 8 10 12 14 16 18 20 22
         {
             if (score % 2 != 0 || score > 22)
             {
@@ -225,9 +255,9 @@ public class MongoDbRepository : IRepository
                 throw new Exception("wrong value");
             }
         }
-        if (combination == 16) // yatzy, aina 50 pistettä
+        if (combination == 16) // yatzy, aina 50 tai 0 pistettä
         {
-            if (score != 50)
+            if (score != 50 && score != 0)
             {
                 throw new Exception("wrong value");
             }
@@ -235,30 +265,111 @@ public class MongoDbRepository : IRepository
     }
     public async Task<String> GetScoreboard(String id)
     {
-        var player = GetPlayer(id).Result;
+        var player = await GetPlayer(id);
+        String playerScoreboard = File.ReadAllText("scoreboard.txt");
         String header = $"Scoreboard for {player.name}";
-        String scoreboard = $@"
-        ONES:       |{player.scoreboard.scores[0]}|
-        TWOS:       |{player.scoreboard.scores[1]}|
-        THREES:     |{player.scoreboard.scores[2]}|
-        FOURS:      |{player.scoreboard.scores[3]}|
-        FIVES:      |{player.scoreboard.scores[4]}|
-        SIXES:      |{player.scoreboard.scores[5]}|
-        ------------
-        total:      |{player.scoreboard.scores[6]}|
-        bonus:      |{player.scoreboard.scores[7]}|
-        ------------
-        PAIR:       |{player.scoreboard.scores[8]}|
-        2 PAIRS:    |{player.scoreboard.scores[9]}|
-        3OfKind:    |{player.scoreboard.scores[10]}|
-        4OfKind:    |{player.scoreboard.scores[11]}|
-        Sm.straight:|{player.scoreboard.scores[13]}|
-        Lg.straight:|{player.scoreboard.scores[14]}|
-        FullHouse:  |{player.scoreboard.scores[12]}|
-        Chance:     |{player.scoreboard.scores[15]}|
-        Yatzy:      |{player.scoreboard.scores[16]}|
-        ------------
-        total:      |{player.scoreboard.scores[17]}|";
-        return String.Join("\n", header, scoreboard);
+        for (int x = 0; x < 18; x++)
+        {
+            String value = " ";
+            if (player.scoreboard.scores[x] != -1)
+            {
+                value = player.scoreboard.scores[x].ToString();
+            }
+            if (x < 10)
+            {
+                playerScoreboard = playerScoreboard.Replace($"_SCORE_0{x}", value);
+            }
+            else
+            {
+                playerScoreboard = playerScoreboard.Replace($"_SCORE_{x}", value);
+            }
+        }
+        return String.Join("\n", header, playerScoreboard);
+    }
+
+    public async Task<Player> AddRandomValuesAll(String id)
+    {
+        var player = await GetPlayer(id);
+
+        for (int i = 0; i < 17; i++)
+        {
+            Random rnd = new Random();
+            if (i < 6) //yläkerta
+            {
+                int dice = i + 1; // index starts from 0
+                int value = dice * rnd.Next(1, 6); //1-5 dice
+                await AddScore(id, value, (Combination)i);
+            }
+            if (i == 8) // pari = mahd scoret 2 4 6 8 10 12
+            {
+                int[] scores = { 2, 4, 6, 8, 10, 12 };
+                int value = scores[rnd.Next(0, scores.Length)];
+                await AddScore(id, value, (Combination)i);
+            }
+            if (i == 9) // 2*pari = mahd scoret 6 8 10 12 14 16 18 20 22
+            {
+                int[] scores = { 6, 8, 10, 12, 14, 16, 18, 20, 22 };
+                int value = scores[rnd.Next(0, scores.Length)];
+                await AddScore(id, value, (Combination)i);
+            }
+            if (i == 10) // kolmiluku = mahd pisteet 3 6 9 12 15 18
+            {
+                int[] scores = { 3, 6, 9, 12, 15, 18 };
+                int value = scores[rnd.Next(0, scores.Length)];
+                await AddScore(id, value, (Combination)i);
+            }
+            if (i == 11) // neliluku = mahd pisteet 4,8,12,16,20,24
+            {
+                int[] scores = { 4, 8, 12, 16, 20, 24 };
+                int value = scores[rnd.Next(0, scores.Length)];
+                await AddScore(id, value, (Combination)i);
+            }
+            if (i == 12) //täyskäsi, kolmiluku + pari
+            {
+                int[] pariScoret = { 2, 4, 6, 8, 10, 12 };
+                int[] kolmilukuScoret = { 3, 6, 9, 12, 15, 18 };
+                int value = pariScoret[rnd.Next(0, pariScoret.Length)] + kolmilukuScoret[rnd.Next(0, kolmilukuScoret.Length)];
+                await AddScore(id, value, (Combination)i);
+            }
+            if (i == 13)
+            {
+                await AddScore(id, 15, (Combination)i);
+            }
+            if (i == 14)
+            {
+                await AddScore(id, 20, (Combination)i);
+            }
+            if (i == 15)
+            {
+                await AddScore(id, rnd.Next(0, 31), (Combination)i);
+            }
+            if (i == 16)
+
+            {
+                int roll = rnd.Next(0, 100);
+                if (roll < 34)
+                {
+                    await AddScore(id, 50, (Combination)i);
+                }
+                else
+                {
+                    await AddScore(id, 0, (Combination)i);
+                }
+            }
+        }
+
+        return player;
+    }
+    public async Task<Player> ResetFields(String id)
+    {
+        var player = await GetPlayer(id);
+
+        for (int i = 0; i < 18; i++)
+        {
+            await DeleteScore(id, (Combination)i);
+            System.Console.WriteLine("test");
+        }
+
+        return player;
     }
 }

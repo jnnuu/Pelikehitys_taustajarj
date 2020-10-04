@@ -1,0 +1,21 @@
+ONES:       |_SCORE_00|
+TWOS:       |_SCORE_01|
+THREES:     |_SCORE_02|
+FOURS:      |_SCORE_03|
+FIVES:      |_SCORE_04|
+SIXES:      |_SCORE_05|
+------------
+sub-total:  |_SCORE_06|
+bonus:      |_SCORE_07|
+------------
+PAIR:       |_SCORE_08|
+2 PAIRS:    |_SCORE_09|
+3OfKind:    |_SCORE_10|
+4OfKind:    |_SCORE_11|
+FullHouse:  |_SCORE_12|
+Sm.straight:|_SCORE_13|
+Lg.straight:|_SCORE_14|
+Chance:     |_SCORE_15|
+Yatzy:      |_SCORE_16|
+------------
+total:      |_SCORE_17|

@@ -87,5 +87,20 @@ namespace Projekti.Controllers
         {
             return await _repository.GetScoreboard(id);
         }
+
+        [HttpPost]
+        [Route("Other/GenerateAll/{id}")]
+        public async Task<Player> AddRandomValuesAll(string id)
+        {
+            await _repository.AddRandomValuesAll(id);
+            return await _repository.GetPlayer(id);
+        }
+        [HttpPost]
+        [Route("Other/ResetAll/{id}")]
+        public async Task<Player> ResetAll(String id)
+        {
+            await _repository.ResetFields(id);
+            return await _repository.GetPlayer(id);
+        }
     }
 }
