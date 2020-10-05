@@ -21,7 +21,33 @@ public class MongoDbRepository : IRepository
         _gamesCollection = database.GetCollection<Game>("games");
         _bsonDocumentCollection = database.GetCollection<BsonDocument>("games");
     }
+    public async Task<String> GetFreeFields(String id)
+    {
+        //etsitään oikea pelaaja
+        var filter = Builders<Game>.Filter.Empty; //filtteri kaikille pelaajille
+        var lista = await _gamesCollection.Find(filter).ToListAsync();
 
+        foreach (var game in lista)
+        {
+            for (int i = 0; i < game._players.Count; i++)
+            {
+                if (game._players[i].Id == id) //id:tä vastaava pelaaja löydetty
+                {
+                    var _scoreboard = game._players[i].scoreboard.scores;
+                    List<Combination> freeFields = new List<Combination>();
+                    for (int j = 0; j < _scoreboard.Length; j++)
+                    {
+                        if (_scoreboard[j] == -1 && j != 7) // 7 on bonus
+                        {
+                            freeFields.Add((Combination)j);
+                        }
+                    }
+                    return PrintFields(freeFields);
+                }
+            }
+        }
+        return null; //pelaajaa ei löytynyt;
+    }
     public async Task<Player> AddScore(String id, int score, Combination combination)
     {
         var filter = Builders<Game>.Filter.Empty;
@@ -87,16 +113,27 @@ public class MongoDbRepository : IRepository
                     Game newGame = new Game();
                     var filter2 = Builders<Game>.Filter.Eq(g => g.Id, game.Id);
                     newGame = await _gamesCollection.Find(filter2).FirstAsync();
-                    Player newPlayer = game._players[i];
-                    if ((int)combination == 6 || (int)combination == 17)
+                    Player newPlayer = game._players[i]; //pelajaa jonka id on sama kuin parametrinä saatu id
+                    if ((int)combination == (int)Combination.total_up || (int)combination == (int)Combination.total)
                     {
-                        newPlayer.scoreboard.scores[(int)combination] = 0;
+                        newPlayer.scoreboard.scores[(int)combination] = 0; //total-kenttien alkuarvo on 0
+
                     }
                     else
                     {
-                        newPlayer.scoreboard.scores[(int)combination] = -1;
+                        if ((int)combination < 6) //yläkerrasta poistettaessa tuloksia, vähennetään molemmista totaleista
+                        {
+                            newPlayer.scoreboard.scores[(int)Combination.total_up] -= newPlayer.scoreboard.scores[(int)combination];
+                            newPlayer.scoreboard.scores[(int)Combination.total] -= newPlayer.scoreboard.scores[(int)combination];
+                        }
+                        else //jos ei yläkerta, niin vain alakerran totalista vähennetään pisteitä
+                        {
+                            newPlayer.scoreboard.scores[(int)Combination.total] -= newPlayer.scoreboard.scores[(int)combination];
+                        }
+                        newPlayer.scoreboard.scores[(int)combination] = -1; //muiden kenttien alkuarvo on -1
                     }
                     newGame._players[i] = newPlayer;
+                    //await CheckForBonus(id);
                     await _gamesCollection.ReplaceOneAsync(filter2, newGame);
                     return newPlayer;
                 }
@@ -197,60 +234,77 @@ public class MongoDbRepository : IRepository
     {
         if (combination < 6) //yläkerta = samojen silmälukujen summa
         {
-            if (score % (combination + 1) != 0)
+            if (score % (combination + 1) != 0 && score != 0)
             {
                 throw new Exception("wrong value"); // tähän vois tehdä oman exceptionin
             }
         }
         if (combination == 8) // pari = mahd scoret 2 4 6 8 10 12
         {
-            if (score % 2 != 0 || score > 12)
+            if (score % 2 != 0 || score > 12 && score != 0)
             {
                 throw new Exception("wrong value");
             }
         }
         if (combination == 9) // 2*pari = mahd scoret 6 8 10 12 14 16 18 20 22
         {
-            if (score % 2 != 0 || score > 22)
+            if (score % 2 != 0 || score > 22 && score != 0)
             {
                 throw new Exception("wrong value");
             }
         }
         if (combination == 10) // kolmiluku = mahd pisteet 3 6 9 12 15 18
         {
-            if (score % 3 != 0 || score > 18)
+            if (score % 3 != 0 || score > 18 && score != 0)
             {
                 throw new Exception("wrong value");
             }
         }
         if (combination == 11) // neliluku = mahd pisteet 4 8 12 16 20 24  
         {
-            if (score % 4 != 0 || score > 24)
+            if (score % 4 != 0 || score > 24 && score != 0)
             {
                 throw new Exception("wrong value");
             }
         }
         if (combination == 12) // täyskäsi 
         {
-            // TODO: keksi ja toteuta täyskäden toteuttava sääntö
+            int[] pariScoret = { 2, 4, 6, 8, 10, 12 };
+            int[] kolmilukuScoret = { 3, 6, 9, 12, 15, 18 };
+            List<int> tayskasiScoret = new List<int>();
+            for (int i = 0; i < 6; i++)
+            {
+                for (int j = 0; j < 6; j++)
+                {
+                    if (i != j) // esim 1+1 ja 1+1+1 ei ole täyskäsi, tai 2+2 ja 2+2+2 jne
+                    {
+                        tayskasiScoret.Add(pariScoret[i] + kolmilukuScoret[j]);
+                    }
+                }
+            }
+            if (!tayskasiScoret.Contains(score))
+            {
+                throw new Exception("wrong value(full house)");
+            }
+
         }
-        if (combination == 13) // pieni suora on aina 15 pistettä
+        if (combination == 13) // pieni suora on aina 15 pistettä (tai 0)
         {
-            if (score != 15)
+            if (score != 15 && score != 0)
             {
                 throw new Exception("worng value");
             }
         }
-        if (combination == 14) // iso suora on aina 20 pistettä
+        if (combination == 14) // iso suora on aina 20 pistettä (tai 0)
         {
-            if (score != 20)
+            if (score != 20 && score != 0)
             {
                 throw new Exception("worng value");
             }
         }
         if (combination == 15) // sattuma, viidellä nopalla mahdollisimman suuri tulos, min 5 max 30
         {
-            if (score < 5 || score > 30)
+            if (score < 5 || score > 30 && score != 0)
             {
                 throw new Exception("wrong value");
             }
@@ -328,20 +382,46 @@ public class MongoDbRepository : IRepository
             {
                 int[] pariScoret = { 2, 4, 6, 8, 10, 12 };
                 int[] kolmilukuScoret = { 3, 6, 9, 12, 15, 18 };
-                int value = pariScoret[rnd.Next(0, pariScoret.Length)] + kolmilukuScoret[rnd.Next(0, kolmilukuScoret.Length)];
-                await AddScore(id, value, (Combination)i);
+                int parIndex = rnd.Next(0, pariScoret.Length);
+                int threeIndex = rnd.Next(0, kolmilukuScoret.Length);
+                int returnValue = 0;
+                if (parIndex == threeIndex) // jos tulos on 1+1 ja 1+1+1, asetetaan tulokseksi 0, (1+1+1+1+1 ei käy täyskäteen)
+                {
+                    returnValue = 0;
+                }
+                else
+                {
+                    returnValue = pariScoret[parIndex] + kolmilukuScoret[threeIndex];
+                }
+                await AddScore(id, returnValue, (Combination)i);
             }
-            if (i == 13)
+            if (i == 13) // pieni suora aina 0/15p
             {
-                await AddScore(id, 15, (Combination)i);
+                int roll = rnd.Next(0, 100);
+                if (roll < 50)
+                {
+                    await AddScore(id, 15, (Combination)i);
+                }
+                else
+                {
+                    await AddScore(id, 0, (Combination)i);
+                }
             }
-            if (i == 14)
+            if (i == 14) //iso suora aina 0/20p
             {
-                await AddScore(id, 20, (Combination)i);
+                int roll = rnd.Next(0, 100);
+                if (roll < 50)
+                {
+                    await AddScore(id, 20, (Combination)i);
+                }
+                else
+                {
+                    await AddScore(id, 0, (Combination)i);
+                }
             }
-            if (i == 15)
+            if (i == 15) // sattuma, 5-30p;
             {
-                await AddScore(id, rnd.Next(0, 31), (Combination)i);
+                await AddScore(id, rnd.Next(5, 31), (Combination)i);
             }
             if (i == 16)
 
@@ -370,5 +450,50 @@ public class MongoDbRepository : IRepository
         }
 
         return player;
+    }
+    public String PrintFields(List<Combination> fieldList)
+    {
+        String header = "Available fields:";
+        String content = "";
+        foreach (var item in fieldList)
+        {
+            content += $"{(int)item}:{Enum.GetName(typeof(Combination), item)}\n";
+        }
+        if (content == "")
+        {
+            return "No available fields";
+        }
+        return String.Join("\n", header, content);
+    }
+    public async Task<Player> CheckForBonus(String id)
+    {
+        //pitää muistaa ylläpitää mongodb arvoja
+        var filter = Builders<Game>.Filter.Empty;
+        var lista = await _gamesCollection.Find(filter).ToListAsync();
+        foreach (var game in lista)
+        {
+            for (int i = 0; i < game._players.Count; i++)
+            {
+                if (game._players[i].Id == id)
+                {
+                    Game newGame = new Game();
+                    var filter2 = Builders<Game>.Filter.Eq(g => g.Id, game.Id);
+                    newGame = await _gamesCollection.Find(filter2).FirstAsync();
+                    Player newPlayer = game._players[i]; //pelajaa jonka id on sama kuin parametrinä saatu id
+                    if (newPlayer.scoreboard.scores[(int)Combination.total_up] >= 63)
+                    {
+                        newPlayer.scoreboard.scores[(int)Combination.bonus] = 50;
+                    }
+                    else
+                    {
+                        newPlayer.scoreboard.scores[(int)Combination.bonus] = -1;
+                    }
+                    newGame._players[i] = newPlayer;
+                    await _gamesCollection.ReplaceOneAsync(filter2, newGame);
+                    return newPlayer;
+                }
+            }
+        }
+        return null; //player not found
     }
 }

@@ -10,7 +10,7 @@ public interface IRepository
     Task<Player> CreateAPlayer(Player player, String id);
     Task<Player> GetPlayer(String id);
     Task<Player> AddScore(String id, int score, Combination combination);
-
+    Task<String> GetFreeFields(String id);
     Task<int> GetScore(String id);
     Task<Player> DeleteScore(String id, Combination combination);
 
@@ -21,6 +21,7 @@ public interface IRepository
 
     Task<Player> AddRandomValuesAll(String id);
     Task<Player> ResetFields(String id);
+    Task<Player> CheckForBonus(String id);
 
 
 

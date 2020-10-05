@@ -3,9 +3,14 @@ View all games                  = GET   /yatzy/
 Creating a game                 = POST  /yatzy/StartNewGame/<amount of players:int>
 Adding players                  = POST  /yatzy/CreateAPlayer/<Game id:guid> //FromBody {"name":"Your Name"}
 Adding score                    = POST  /yatzy/AddScore/<player id:guid>/<field id:int>/<score:int>
+Deleting score                  = POST  /yatzy/DeleteScore/<player id:guid>/field id:int/
 Get player                      = GET   /yatzy/GetPlayer/<player id:guid>
 Get player scoreboard           = GET   /yatzy/GetScoreBoard/<player id:guid>
+Get free fields of player       = GET   /yatzy/GetFreeFields/<player id: guid>
 Get winner of a finished game   = POST  /yatzy/GetWinner/<game id:guid> 
+
+Generate values for player      = POST  /yatzy/other/GenerateAll/<player id:guid>
+Reset values of player          = POST  /yatzy/other/ResetAll/<player id:guid>
 
 title       Field id
 ____________________

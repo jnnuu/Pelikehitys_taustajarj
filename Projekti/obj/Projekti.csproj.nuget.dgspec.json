@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\uusi-\\source\\repos\\Pelikehitys_taustajarj\\Projekti\\Projekti.csproj": {}
+    "C:\\Users\\Jonni\\source\\repos\\Pelikehitys_taustajarj\\Projekti\\Projekti.csproj": {}
   },
   "projects": {
-    "C:\\Users\\uusi-\\source\\repos\\Pelikehitys_taustajarj\\Projekti\\Projekti.csproj": {
+    "C:\\Users\\Jonni\\source\\repos\\Pelikehitys_taustajarj\\Projekti\\Projekti.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\uusi-\\source\\repos\\Pelikehitys_taustajarj\\Projekti\\Projekti.csproj",
+        "projectUniqueName": "C:\\Users\\Jonni\\source\\repos\\Pelikehitys_taustajarj\\Projekti\\Projekti.csproj",
         "projectName": "Projekti",
-        "projectPath": "C:\\Users\\uusi-\\source\\repos\\Pelikehitys_taustajarj\\Projekti\\Projekti.csproj",
-        "packagesPath": "C:\\Users\\uusi-\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\uusi-\\source\\repos\\Pelikehitys_taustajarj\\Projekti\\obj\\",
+        "projectPath": "C:\\Users\\Jonni\\source\\repos\\Pelikehitys_taustajarj\\Projekti\\Projekti.csproj",
+        "packagesPath": "C:\\Users\\Jonni\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Jonni\\source\\repos\\Pelikehitys_taustajarj\\Projekti\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
         ],
         "configFilePaths": [
-          "C:\\Users\\uusi-\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Jonni\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -64,7 +64,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.401\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.201\\RuntimeIdentifierGraph.json"
         }
       }
     }

@@ -58,6 +58,14 @@ namespace Projekti.Controllers
 
         }
 
+        [HttpPost]
+        [Route("DeleteScore/{id}/{combination:int}")]
+        public async Task<Player> DeleteScore(String id, Combination combination)
+        {
+            await _repository.DeleteScore(id, combination);
+            return await _repository.CheckForBonus(id);
+        }
+
         [HttpGet]
         [Route("GetPlayer/{id}")]
         public async Task<Player> GetPlayer(String id)
@@ -87,7 +95,12 @@ namespace Projekti.Controllers
         {
             return await _repository.GetScoreboard(id);
         }
-
+        [HttpGet]
+        [Route("GetFreeFields/{id}")]
+        public async Task<String> GetFreeFields(String id)
+        {
+            return await _repository.GetFreeFields(id);
+        }
         [HttpPost]
         [Route("Other/GenerateAll/{id}")]
         public async Task<Player> AddRandomValuesAll(string id)
