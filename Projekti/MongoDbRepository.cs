@@ -9,6 +9,51 @@ public enum Combination
 {
     ones, twos, threes, fours, fives, sixes, total_up, bonus, one_pair, two_pairs, three_same, four_same, full_house, low_straight, high_straight, chance, yatzy, total
 }
+
+[Serializable()]
+public class ScoreOutOfBoundsException : System.Exception
+{
+    public ScoreOutOfBoundsException() : base(String.Format("Score out of bounds")) { }
+    public ScoreOutOfBoundsException(string message) : base(String.Format("Score out of bounds: ", message)) { }
+    public ScoreOutOfBoundsException(string message, System.Exception inner) : base(String.Format("Score out of bounds: ", message, inner)) { }
+
+    protected ScoreOutOfBoundsException(System.Runtime.Serialization.SerializationInfo info,
+        System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+}
+
+[Serializable()]
+public class GameNotFoundException : System.Exception
+{
+    public GameNotFoundException() : base(String.Format("Game not found")) { }
+    public GameNotFoundException(string message) : base(String.Format("Game not found: ", message)) { }
+    public GameNotFoundException(string message, System.Exception inner) : base(String.Format("Game not found: ", message, inner)) { }
+
+    protected GameNotFoundException(System.Runtime.Serialization.SerializationInfo info,
+        System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+}
+
+[Serializable()]
+public class GameNotFinishedException : System.Exception
+{
+    public GameNotFinishedException() : base(String.Format("Game not finished")) { }
+    public GameNotFinishedException(string message) : base(String.Format("Game not finished", message)) { }
+    public GameNotFinishedException(string message, System.Exception inner) : base(String.Format("Game not finished", message, inner)) { }
+
+    protected GameNotFinishedException(System.Runtime.Serialization.SerializationInfo info,
+        System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+}
+
+[Serializable()]
+public class WrongValueException : System.Exception
+{
+    public WrongValueException() : base(String.Format("Wrong value")) { }
+    public WrongValueException(string message) : base(String.Format("Wrong value", message)) { }
+    public WrongValueException(string message, System.Exception inner) : base(String.Format("Wrong value", message, inner)) { }
+
+    protected WrongValueException(System.Runtime.Serialization.SerializationInfo info,
+        System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+}
+
 public class MongoDbRepository : IRepository
 {
 
@@ -91,7 +136,7 @@ public class MongoDbRepository : IRepository
                     }
                     else
                     {
-                        throw new Exception(); // tähän voisi vaihtaa oman exceptionin 
+                        throw new ScoreOutOfBoundsException(); // tähän voisi vaihtaa oman exceptionin 
                     }
 
                 }
@@ -170,19 +215,23 @@ public class MongoDbRepository : IRepository
 
     public async Task<int> GetScore(String id)
     {
-        var filter = Builders<Game>.Filter.Empty;
-        List<Game> lista = await _gamesCollection.Find(filter).ToListAsync();
-        foreach (var game in lista)
-        {
-            foreach (var player in game._players)
+
+            var filter = Builders<Game>.Filter.Empty;
+            List<Game> lista = await _gamesCollection.Find(filter).ToListAsync();
+            foreach (var game in lista)
             {
-                if (player.Id == id)
+                foreach (var player in game._players)
                 {
-                    return player.scoreboard.scores[17];
+                    if (player.Id == id)
+                    {
+                        return player.scoreboard.scores[17];
+                    }
                 }
             }
-        }
+        
+        
         return -1; // tähän vielä exception myöhemmin mikä otetaan kiinni? 
+        //Tein gamenotfoundexceptionin mut en oo ihan varma mitä tässä on ajettu takaa joten en lähteny sörkkimään t. ville
 
     }
 
@@ -205,7 +254,7 @@ public class MongoDbRepository : IRepository
             {
                 if (score == -1)
                 {
-                    throw new Exception("Game not finished"); //tähän vois tehdä oman exceptionin
+                    throw new GameNotFinishedException(); //tähän vois tehdä oman exceptionin
                 }
             }
             if (player.scoreboard.scores[(int)Combination.total] > winner.scoreboard.scores[(int)Combination.total])
@@ -236,35 +285,35 @@ public class MongoDbRepository : IRepository
         {
             if (score % (combination + 1) != 0 && score != 0)
             {
-                throw new Exception("wrong value"); // tähän vois tehdä oman exceptionin
+                throw new WrongValueException(); // tähän vois tehdä oman exceptionin
             }
         }
         if (combination == 8) // pari = mahd scoret 2 4 6 8 10 12
         {
             if (score % 2 != 0 || score > 12 && score != 0)
             {
-                throw new Exception("wrong value");
+                throw new WrongValueException();
             }
         }
         if (combination == 9) // 2*pari = mahd scoret 6 8 10 12 14 16 18 20 22
         {
             if (score % 2 != 0 || score > 22 && score != 0)
             {
-                throw new Exception("wrong value");
+                throw new WrongValueException();
             }
         }
         if (combination == 10) // kolmiluku = mahd pisteet 3 6 9 12 15 18
         {
             if (score % 3 != 0 || score > 18 && score != 0)
             {
-                throw new Exception("wrong value");
+                throw new WrongValueException();
             }
         }
         if (combination == 11) // neliluku = mahd pisteet 4 8 12 16 20 24  
         {
             if (score % 4 != 0 || score > 24 && score != 0)
             {
-                throw new Exception("wrong value");
+                throw new WrongValueException();
             }
         }
         if (combination == 12) // täyskäsi 
@@ -284,7 +333,7 @@ public class MongoDbRepository : IRepository
             }
             if (!tayskasiScoret.Contains(score))
             {
-                throw new Exception("wrong value(full house)");
+                throw new WrongValueException("wrong value(full house)");
             }
 
         }
@@ -292,28 +341,28 @@ public class MongoDbRepository : IRepository
         {
             if (score != 15 && score != 0)
             {
-                throw new Exception("worng value");
+                throw new WrongValueException();
             }
         }
         if (combination == 14) // iso suora on aina 20 pistettä (tai 0)
         {
             if (score != 20 && score != 0)
             {
-                throw new Exception("worng value");
+                throw new WrongValueException();
             }
         }
         if (combination == 15) // sattuma, viidellä nopalla mahdollisimman suuri tulos, min 5 max 30
         {
             if (score < 5 || score > 30 && score != 0)
             {
-                throw new Exception("wrong value");
+                throw new WrongValueException();
             }
         }
         if (combination == 16) // yatzy, aina 50 tai 0 pistettä
         {
             if (score != 50 && score != 0)
             {
-                throw new Exception("wrong value");
+                throw new WrongValueException();
             }
         }
     }
