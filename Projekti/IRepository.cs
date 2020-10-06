@@ -23,6 +23,9 @@ public interface IRepository
     Task<Player> ResetFields(String id);
     Task<Player> CheckForBonus(String id);
 
+    Task<String> NukeAllGames();
+    Task<String> NukeGame(String id_game);
+
 
 
 }

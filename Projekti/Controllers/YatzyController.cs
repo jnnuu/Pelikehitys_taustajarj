@@ -115,5 +115,19 @@ namespace Projekti.Controllers
             await _repository.ResetFields(id);
             return await _repository.GetPlayer(id);
         }
+
+        [HttpPost]
+        [Route("Other/NukeOne/{id}")]
+        public async Task<String> NukeOne(String id)
+        {
+            return await _repository.NukeGame(id);
+        }
+
+        [HttpPost]
+        [Route("Other/NukeAll")]
+        public async Task<String> NukeAll()
+        {
+            return await _repository.NukeAllGames();
+        }
     }
 }

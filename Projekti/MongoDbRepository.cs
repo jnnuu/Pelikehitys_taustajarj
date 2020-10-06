@@ -216,20 +216,20 @@ public class MongoDbRepository : IRepository
     public async Task<int> GetScore(String id)
     {
 
-            var filter = Builders<Game>.Filter.Empty;
-            List<Game> lista = await _gamesCollection.Find(filter).ToListAsync();
-            foreach (var game in lista)
+        var filter = Builders<Game>.Filter.Empty;
+        List<Game> lista = await _gamesCollection.Find(filter).ToListAsync();
+        foreach (var game in lista)
+        {
+            foreach (var player in game._players)
             {
-                foreach (var player in game._players)
+                if (player.Id == id)
                 {
-                    if (player.Id == id)
-                    {
-                        return player.scoreboard.scores[17];
-                    }
+                    return player.scoreboard.scores[17];
                 }
             }
-        
-        
+        }
+
+
         return -1; // tähän vielä exception myöhemmin mikä otetaan kiinni? 
         //Tein gamenotfoundexceptionin mut en oo ihan varma mitä tässä on ajettu takaa joten en lähteny sörkkimään t. ville
 
@@ -266,6 +266,26 @@ public class MongoDbRepository : IRepository
         await _gamesCollection.ReplaceOneAsync(filter, foundGame);
         return winner;
 
+    }
+
+    // Tommin happy place
+    public async Task<String> NukeAllGames()
+    {
+        var mongoClient = new MongoClient("mongodb://localhost:27017");
+        var database = mongoClient.GetDatabase("yatzygame");
+        database.DropCollection("games");
+
+        return "All data dropped.";
+    }
+
+    public async Task<String> NukeGame(String id_game)
+    {
+        var mongoClient = new MongoClient("mongodb://localhost:27017");
+        var database = mongoClient.GetDatabase("yatzygame");
+        var filter = Builders<Game>.Filter.Eq(g => g.Id, id_game);
+        _gamesCollection.DeleteOne(filter);
+
+        return $"Data dropped from id: {id_game}";
     }
 
     public async Task<Game> StartNewGame(Game game)
