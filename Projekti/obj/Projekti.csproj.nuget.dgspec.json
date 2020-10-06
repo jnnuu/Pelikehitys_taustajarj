@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "D:\\PeliKehitysBACK\\Pelikehitys_taustajarj\\Projekti\\Projekti.csproj": {}
+    "C:\\Users\\Jere\\source\\repos\\Pelikehitys_taustajarj\\Projekti\\Projekti.csproj": {}
   },
   "projects": {
-    "D:\\PeliKehitysBACK\\Pelikehitys_taustajarj\\Projekti\\Projekti.csproj": {
+    "C:\\Users\\Jere\\source\\repos\\Pelikehitys_taustajarj\\Projekti\\Projekti.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\PeliKehitysBACK\\Pelikehitys_taustajarj\\Projekti\\Projekti.csproj",
+        "projectUniqueName": "C:\\Users\\Jere\\source\\repos\\Pelikehitys_taustajarj\\Projekti\\Projekti.csproj",
         "projectName": "Projekti",
-        "projectPath": "D:\\PeliKehitysBACK\\Pelikehitys_taustajarj\\Projekti\\Projekti.csproj",
-        "packagesPath": "C:\\Users\\SONNI\\.nuget\\packages\\",
-        "outputPath": "D:\\PeliKehitysBACK\\Pelikehitys_taustajarj\\Projekti\\obj\\",
+        "projectPath": "C:\\Users\\Jere\\source\\repos\\Pelikehitys_taustajarj\\Projekti\\Projekti.csproj",
+        "packagesPath": "C:\\Users\\Jere\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Jere\\source\\repos\\Pelikehitys_taustajarj\\Projekti\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\SONNI\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\Jere\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "netcoreapp3.1"

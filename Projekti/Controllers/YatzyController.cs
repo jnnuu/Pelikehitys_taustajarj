@@ -31,8 +31,8 @@ namespace Projekti.Controllers
         }
 
         [HttpPost]
-        [Route("CreateAPlayer/{id}")]
-        public async Task<Player> CreateAPlayer(String id, [FromBody] NewPlayer newplayer)
+        [Route("CreateNewPlayer/{id}")]
+        public async Task<Player> CreateNewPlayer(String id, [FromBody] NewPlayer newplayer)
         {
             Player player = new Player();
             player.Id = Guid.NewGuid().ToString();
@@ -45,9 +45,9 @@ namespace Projekti.Controllers
         [HttpGet]
         [Route("{id}")]
 
-        public async Task<int> GetScore(String id)
+        public async Task<int> GetTotalScore(String id)
         {
-            return await _repository.GetScore(id);
+            return await _repository.GetTotalScore(id);
         }
 
         [HttpPost]
@@ -116,15 +116,15 @@ namespace Projekti.Controllers
             return await _repository.GetPlayer(id);
         }
 
-        [HttpPost]
-        [Route("Other/NukeOne/{id}")]
+        [HttpDelete]
+        [Route("{id}")]
         public async Task<String> NukeOne(String id)
         {
             return await _repository.NukeGame(id);
         }
 
-        [HttpPost]
-        [Route("Other/NukeAll")]
+        [HttpDelete]
+        [Route("All")]
         public async Task<String> NukeAll()
         {
             return await _repository.NukeAllGames();

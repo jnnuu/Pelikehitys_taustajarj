@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using MongoDB.Bson;
 
 using MongoDB.Driver;
+using Projekti;
+
 public enum Combination
 {
     ones, twos, threes, fours, fives, sixes, total_up, bonus, one_pair, two_pairs, three_same, four_same, full_house, low_straight, high_straight, chance, yatzy, total
@@ -22,6 +24,20 @@ public class MongoDbRepository : IRepository
         _gamesCollection = database.GetCollection<Game>("games");
         _bsonDocumentCollection = database.GetCollection<BsonDocument>("games");
     }
+    public async Task<Game> StartNewGame(Game game)
+    {
+        await _gamesCollection.InsertOneAsync(game);
+        return game;
+    }
+    public async Task<Player> CreateAPlayer(Player player, String id)
+    {
+        var filter = Builders<Game>.Filter.Eq(g => g.Id, id);
+        Game foundGame = await _gamesCollection.Find(filter).FirstAsync();
+        foundGame._players.Add(player);
+        await _gamesCollection.ReplaceOneAsync(filter, foundGame);
+
+        return player;
+    }
     public async Task<String> GetFreeFields(String id)
     {
         //etsitään oikea pelaaja
@@ -38,7 +54,7 @@ public class MongoDbRepository : IRepository
                     List<Combination> freeFields = new List<Combination>();
                     for (int j = 0; j < _scoreboard.Length; j++)
                     {
-                        if (_scoreboard[j] == -1 && j != 7) // 7 on bonus
+                        if (_scoreboard[j] == -1)
                         {
                             freeFields.Add((Combination)j);
                         }
@@ -47,7 +63,9 @@ public class MongoDbRepository : IRepository
                 }
             }
         }
-        return null; //pelaajaa ei löytynyt;
+        throw new PlayerNotFoundException();
+
+        // return null; //pelaajaa ei löytynyt;
     }
     public async Task<Player> AddScore(String id, int score, Combination combination)
     {
@@ -57,7 +75,7 @@ public class MongoDbRepository : IRepository
 
         if ((int)combination == 6 || (int)combination == 7 || (int)combination == 17)
         {
-            throw new Exception("wrong field");
+            throw new WrongValueException("wrong field, can't add score to totals or bonus");
         }
 
         foreach (var game in lista)
@@ -92,13 +110,15 @@ public class MongoDbRepository : IRepository
                     }
                     else
                     {
-                        throw new ScoreOutOfBoundsException(); // tähän voisi vaihtaa oman exceptionin 
+                        throw new ScoreExistsAlreadyException(); // tähän voisi vaihtaa oman exceptionin 
                     }
 
                 }
             }
         }
-        return null;
+        throw new PlayerNotFoundException();
+
+        // return null; //pelaajaa ei löytynyt;
     }
 
     public async Task<Player> DeleteScore(String id, Combination combination)
@@ -134,23 +154,16 @@ public class MongoDbRepository : IRepository
                         newPlayer.scoreboard.scores[(int)combination] = -1; //muiden kenttien alkuarvo on -1
                     }
                     newGame._players[i] = newPlayer;
-                    //await CheckForBonus(id);
                     await _gamesCollection.ReplaceOneAsync(filter2, newGame);
                     return newPlayer;
                 }
             }
         }
-        return null;
-    }
-    public async Task<Player> CreateAPlayer(Player player, String id)
-    {
-        var filter = Builders<Game>.Filter.Eq(g => g.Id, id);
-        Game foundGame = await _gamesCollection.Find(filter).FirstAsync();
-        foundGame._players.Add(player);
-        await _gamesCollection.ReplaceOneAsync(filter, foundGame);
+        throw new PlayerNotFoundException();
 
-        return player;
+        // return null; //pelaajaa ei löytynyt;
     }
+
 
     public async Task<Player> GetPlayer(String id)
     {
@@ -166,12 +179,13 @@ public class MongoDbRepository : IRepository
                 }
             }
         }
-        return null;
+        throw new PlayerNotFoundException();
+
+        // return null; //pelaajaa ei löytynyt; 
     }
 
-    public async Task<int> GetScore(String id)
+    public async Task<int> GetTotalScore(String id)
     {
-
         var filter = Builders<Game>.Filter.Empty;
         List<Game> lista = await _gamesCollection.Find(filter).ToListAsync();
         foreach (var game in lista)
@@ -184,11 +198,7 @@ public class MongoDbRepository : IRepository
                 }
             }
         }
-
-
-        throw new PlayerNotFoundException(); // tähän vielä exception myöhemmin mikä otetaan kiinni? 
-        //Tein gamenotfoundexceptionin mut en oo ihan varma mitä tässä on ajettu takaa joten en lähteny sörkkimään t. ville
-
+        throw new PlayerNotFoundException();
     }
 
     public async Task<Game[]> GetGames()
@@ -201,27 +211,35 @@ public class MongoDbRepository : IRepository
     public async Task<Player> GetWinner(String id_game)
     {
         var filter = Builders<Game>.Filter.Eq(g => g.Id, id_game);
-        Game foundGame = await _gamesCollection.Find(filter).FirstAsync();
-        Player winner = new Player();
-        winner.scoreboard.scores[(int)Combination.total] = 0;
-        foreach (var player in foundGame._players)
+        try
         {
-            foreach (var score in player.scoreboard.scores)
+            Game foundGame = await _gamesCollection.Find(filter).FirstAsync();
+            Player winner = new Player();
+            winner.scoreboard.scores[(int)Combination.total] = 0;
+            foreach (var player in foundGame._players)
             {
-                if (score == -1)
+                foreach (var score in player.scoreboard.scores)
                 {
-                    throw new GameNotFinishedException(); //tähän vois tehdä oman exceptionin
+                    if (score == -1)
+                    {
+                        throw new GameNotFinishedException(); //tähän vois tehdä oman exceptionin
+                    }
+                }
+                if (player.scoreboard.scores[(int)Combination.total] > winner.scoreboard.scores[(int)Combination.total])
+                {
+                    winner = player;
                 }
             }
-            if (player.scoreboard.scores[(int)Combination.total] > winner.scoreboard.scores[(int)Combination.total])
-            {
-                winner = player;
-            }
+            foundGame._winner = winner.name;
+            await _gamesCollection.ReplaceOneAsync(filter, foundGame);
+            return winner;
         }
-        foundGame._winner = winner.name;
-        await _gamesCollection.ReplaceOneAsync(filter, foundGame);
-        return winner;
 
+
+        catch
+        {
+            throw new GameNotFoundException();
+        }
     }
 
     // Tommin happy place
@@ -229,26 +247,27 @@ public class MongoDbRepository : IRepository
     {
         var mongoClient = new MongoClient("mongodb://localhost:27017");
         var database = mongoClient.GetDatabase("yatzygame");
-        database.DropCollection("games");
+        await database.DropCollectionAsync("games");
 
         return "All data dropped.";
     }
 
     public async Task<String> NukeGame(String id_game)
     {
-        var mongoClient = new MongoClient("mongodb://localhost:27017");
-        var database = mongoClient.GetDatabase("yatzygame");
         var filter = Builders<Game>.Filter.Eq(g => g.Id, id_game);
-        _gamesCollection.DeleteOne(filter);
+        try
+        {
+            Game foundGame = await _gamesCollection.Find(filter).FirstAsync();
+        }
+        catch
+        {
+            throw new GameNotFoundException();
+        }
 
+        await _gamesCollection.DeleteOneAsync(filter);
         return $"Data dropped from id: {id_game}";
     }
 
-    public async Task<Game> StartNewGame(Game game)
-    {
-        await _gamesCollection.InsertOneAsync(game);
-        return game;
-    }
 
     public async Task<String> Help()
     {
@@ -259,59 +278,46 @@ public class MongoDbRepository : IRepository
     {
         if (combination < 6) //yläkerta = samojen silmälukujen summa
         {
-            if (score % (combination + 1) != 0 && score != 0)
+            if (score % (combination + 1) != 0 || score < 0)
             {
                 throw new WrongValueException(); // tähän vois tehdä oman exceptionin
             }
         }
         if (combination == 8) // pari = mahd scoret 2 4 6 8 10 12
         {
-            if (score % 2 != 0 || score > 12 && score != 0)
+            if (score % 2 != 0 || score > 12 || score < 0)
             {
                 throw new WrongValueException();
             }
         }
         if (combination == 9) // 2*pari = mahd scoret 6 8 10 12 14 16 18 20 22
         {
-            if (score % 2 != 0 || score > 22 && score != 0)
+            if (score % 2 != 0 || score > 22 || score < 0)
             {
                 throw new WrongValueException();
             }
         }
         if (combination == 10) // kolmiluku = mahd pisteet 3 6 9 12 15 18
         {
-            if (score % 3 != 0 || score > 18 && score != 0)
+            if (score % 3 != 0 || score > 18 || score < 0)
             {
                 throw new WrongValueException();
             }
         }
         if (combination == 11) // neliluku = mahd pisteet 4 8 12 16 20 24  
         {
-            if (score % 4 != 0 || score > 24 && score != 0)
+            if (score % 4 != 0 || score > 24 || score < 0)
             {
                 throw new WrongValueException();
             }
         }
         if (combination == 12) // täyskäsi 
         {
-            int[] pariScoret = { 2, 4, 6, 8, 10, 12 };
-            int[] kolmilukuScoret = { 3, 6, 9, 12, 15, 18 };
-            List<int> tayskasiScoret = new List<int>();
-            for (int i = 0; i < 6; i++)
-            {
-                for (int j = 0; j < 6; j++)
-                {
-                    if (i != j) // esim 1+1 ja 1+1+1 ei ole täyskäsi, tai 2+2 ja 2+2+2 jne
-                    {
-                        tayskasiScoret.Add(pariScoret[i] + kolmilukuScoret[j]);
-                    }
-                }
-            }
-            if (!tayskasiScoret.Contains(score))
+            // tsekataan että score on joko 0 tai 7-28
+            if (score != 0 && score < 7 || score > 28)
             {
                 throw new WrongValueException("wrong value(full house)");
             }
-
         }
         if (combination == 13) // pieni suora on aina 15 pistettä (tai 0)
         {
@@ -407,16 +413,16 @@ public class MongoDbRepository : IRepository
             {
                 int[] pariScoret = { 2, 4, 6, 8, 10, 12 };
                 int[] kolmilukuScoret = { 3, 6, 9, 12, 15, 18 };
-                int parIndex = rnd.Next(0, pariScoret.Length);
+                int pairIndex = rnd.Next(0, pariScoret.Length);
                 int threeIndex = rnd.Next(0, kolmilukuScoret.Length);
                 int returnValue = 0;
-                if (parIndex == threeIndex) // jos tulos on 1+1 ja 1+1+1, asetetaan tulokseksi 0, (1+1+1+1+1 ei käy täyskäteen)
+                if (pairIndex == threeIndex) // jos tulos on 1+1 ja 1+1+1, asetetaan tulokseksi 0, (1+1+1+1+1 ei käy täyskäteen)
                 {
                     returnValue = 0;
                 }
                 else
                 {
-                    returnValue = pariScoret[parIndex] + kolmilukuScoret[threeIndex];
+                    returnValue = pariScoret[pairIndex] + kolmilukuScoret[threeIndex];
                 }
                 await AddScore(id, returnValue, (Combination)i);
             }
@@ -448,7 +454,7 @@ public class MongoDbRepository : IRepository
             {
                 await AddScore(id, rnd.Next(5, 31), (Combination)i);
             }
-            if (i == 16)
+            if (i == 16) // yatzy, 33% mahis
 
             {
                 int roll = rnd.Next(0, 100);
@@ -476,23 +482,9 @@ public class MongoDbRepository : IRepository
 
         return player;
     }
-    public String PrintFields(List<Combination> fieldList)
-    {
-        String header = "Available fields:";
-        String content = "";
-        foreach (var item in fieldList)
-        {
-            content += $"{(int)item}:{Enum.GetName(typeof(Combination), item)}\n";
-        }
-        if (content == "")
-        {
-            return "No available fields";
-        }
-        return String.Join("\n", header, content);
-    }
+
     public async Task<Player> CheckForBonus(String id)
     {
-        //pitää muistaa ylläpitää mongodb arvoja
         var filter = Builders<Game>.Filter.Empty;
         var lista = await _gamesCollection.Find(filter).ToListAsync();
         foreach (var game in lista)
@@ -519,6 +511,23 @@ public class MongoDbRepository : IRepository
                 }
             }
         }
-        return null; //player not found
+        throw new PlayerNotFoundException();
+        // return null; //player not found
+    }
+
+    // jäsenfunktiot
+    public String PrintFields(List<Combination> fieldList)
+    {
+        String header = "Available fields:";
+        String content = "";
+        foreach (var item in fieldList)
+        {
+            content += $"{(int)item}:{Enum.GetName(typeof(Combination), item)}\n";
+        }
+        if (content == "")
+        {
+            return "No available fields";
+        }
+        return String.Join("\n", header, content);
     }
 }

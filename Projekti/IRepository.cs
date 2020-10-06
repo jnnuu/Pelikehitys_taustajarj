@@ -11,7 +11,7 @@ public interface IRepository
     Task<Player> GetPlayer(String id);
     Task<Player> AddScore(String id, int score, Combination combination);
     Task<String> GetFreeFields(String id);
-    Task<int> GetScore(String id);
+    Task<int> GetTotalScore(String id);
     Task<Player> DeleteScore(String id, Combination combination);
 
     Task<Player> GetWinner(String id_game);

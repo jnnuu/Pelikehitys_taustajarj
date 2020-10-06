@@ -31,7 +31,7 @@ public class Scoreboard
         scores[(int)Combination.fives] = -1;
         scores[(int)Combination.sixes] = -1;
         scores[(int)Combination.total_up] = 0;
-        scores[(int)Combination.bonus] = -1;
+        scores[(int)Combination.bonus] = 0;
         scores[(int)Combination.one_pair] = -1;
         scores[(int)Combination.two_pairs] = -1;
         scores[(int)Combination.three_same] = -1;
