@@ -4,7 +4,7 @@ This project's aim was to implement an api to help yatzy players to manage score
 
 ## Http commands
 
-View help message               = `Get   /yatzy/help`  
+View help message               = `GET   /yatzy/help`  
 View all games                  = `GET   /yatzy/`  
 Creating a game                 = `POST  /yatzy/StartNewGame/amount of players:int`  
 Adding players                  = `POST  /yatzy/CreateNewPlayer/Game_id:guid 	// FromBody {"name":"Your Name"}`  
