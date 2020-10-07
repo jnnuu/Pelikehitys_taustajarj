@@ -33,8 +33,16 @@ public class MongoDbRepository : IRepository
     {
         var filter = Builders<Game>.Filter.Eq(g => g.Id, id);
         Game foundGame = await _gamesCollection.Find(filter).FirstAsync();
-        foundGame._players.Add(player);
-        await _gamesCollection.ReplaceOneAsync(filter, foundGame);
+
+        if (foundGame._numberOfPlayers > foundGame._players.Count)
+        {
+            foundGame._players.Add(player);
+            await _gamesCollection.ReplaceOneAsync(filter, foundGame);
+        }
+        else
+        {
+            throw new WrongValueException("Game is already full of players");
+        }
 
         return player;
     }
