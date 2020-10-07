@@ -7,7 +7,7 @@ Deleting score                  = POST  /yatzy/DeleteScore/<player id:guid>/<fie
 Get player                      = GET   /yatzy/GetPlayer/<player id:guid>
 Get player scoreboard           = GET   /yatzy/GetScoreBoard/<player id:guid>
 Get free fields of player       = GET   /yatzy/GetFreeFields/<player id: guid>
-Get winner of a finished game   = GET  /yatzy/GetWinner/<game id:guid> 
+Get winner of a finished game   = GET   /yatzy/GetWinner/<game id:guid> 
 
 Generate values for player      = POST  /yatzy/other/GenerateAll/<player id:guid>
 Reset values of player          = POST  /yatzy/other/ResetAll/<player id:guid>
